@@ -1,111 +1,47 @@
 import { galleryItems } from './gallery-items.js';
 // Change code below this line
 
-console.log(galleryItems);
+const galleryImg = document.querySelector('.gallery');
 
+const imagesMarkup = galleryItems
+  .map(({ preview, original, description }) =>
+    `<div class = "gallery__item">
+<a class = "gallery__link" href = "${original}">
+<img class = "gallery__image"
+  src = "${preview}"
+  data-source = "${original}"
+  alt = "${description}"/>
+</a></div>`).join("");
 
-import defaultEl from './gallery-items.js';
-const ulRef = document.querySelector('.js-gallery');
-const divEl = document.querySelector('.js-lightbox');
-const btnEl = document.querySelector('button[data-action ="close-lightbox"]');
-const divModalEl = document.querySelector('.lightbox__content');
-const overEl = document.querySelector('.lightbox__overlay');
-const newStringEl = defaultEl.reduce((acc, { preview, description, original }) => {
-  return (acc += `<li class="gallery__item">
-  <a class="gallery__link" href="${original}" >
-  <img loading="lazy" class="gallery__image"
-  src="${preview}"
-  alt="${description}"
-  />
-  </a>
-  </li>`);
-}, '');
-ulRef.innerHTML = newStringEl;
+galleryImg.insertAdjacentHTML('afterbegin', imagesMarkup);
+galleryImg.addEventListener('click', onImagesClick);
 
-const imgEl = document.querySelector('.gallery__image');
+function onImagesClick(event) {
+  event.preventDefault();
 
-ulRef.addEventListener('click', e);     
-
-    
-
-let element;
-function e(eve) {
-  eve.preventDefault();
-  if (eve.target.className !== imgEl.className) {
+  if (!event.target.classList.contains('gallery__image')) {
     return;
   }
-  const bigImgEl = eve.target.alt;
-  for (let i = 0; i < defaultEl.length; i++) {
-    if (defaultEl[i].description === bigImgEl) {
-      element = defaultEl[i].original;
+
+  galleryImg.addEventListener('click', onImagesClick);
+
+  const modalWindow = basicLightbox.create(`<div class = "modal">
+ <img src = "${event.target.dataset.source}" width = "800" height = "600">
+</div>`, {
+    onShow: (modalWindow) => {
+      window.addEventListener('keydown', onKeyboardClick);
+      console.log('onShow', modalWindow);
+    },
+    onClose: (modalWindow) => {
+      window.removeEventListener('keydown', onKeyboardClick);
+      console.log('onClose', modalWindow);
     }
-  }
+  });
 
-  divEl.classList.add('is-open');
-  divModalEl.innerHTML = `<img class="lightbox__image"
-    src="${element}"
-    alt="${bigImgEl}"
-  />`;
-  
-}
-
-
-btnEl.addEventListener('click', () => {
-  divEl.classList.remove('is-open');
-});
-
-// Очистка пути после закрытия модалки//
-
-function isOpen() {
-  const divCloseModal = document.querySelector('.lightbox__image');
-  divEl.classList.remove('is-open');
-  divCloseModal.alt = '';
-  divCloseModal.src = '';
-}
-const closeModalEl = document.querySelector('[data-action="close-lightbox"]');
-closeModalEl.addEventListener('click', isOpen);
-
-overEl.addEventListener('click', isOpen);
-
-// Управление кнопками //
-
-document.addEventListener('keydown', eve => {
-  const divCloseModal = document.querySelector('.lightbox__image');
-
-  // Кнопка Esc //
-  if (eve.code === 'Escape') {
-    isOpen()
-  }
-  if (divEl.className.includes('is-open')) {
-    const mapDefEl = defaultEl.map(value => value.original);
-    const indElNum = Number(mapDefEl.indexOf(divCloseModal.src));
-
-    // Кнопка влево, вверх //
-    const mapDelLight = Number(mapDefEl.length) - 1;
-    if (eve.code === 'ArrowLeft' || eve.code === 'ArrowUp') {
-      if (eve.target.className === imgEl.className) {
-        return;
-      }
-      const indLeftEl = indElNum - 1;
-      divCloseModal.src = mapDefEl[indLeftEl];
-      if (indElNum === 0) {
-        divCloseModal.src = mapDefEl[mapDelLight];
-      }
-    }
-    // Кнопка вправо, вниз //
-    if (
-      eve.code === 'ArrowRight' ||
-      eve.code === 'ArrowDown' ||
-      eve.code === 'Space'
-    ) {
-      if (eve.target.className === imgEl.className) {
-        return;
-      }
-      const indEl = indElNum + 1;
-      divCloseModal.src = mapDefEl[indEl];
-      if (indEl === mapDefEl.length) {
-        divCloseModal.src = mapDefEl[0];
-      }
-    }
-  }
-});
+  modalWindow.show()
+  function onKeyboardClick(event) {
+    if (event.code === 'Escape') {
+      modalWindow.close();
+    };
+  };
+};
